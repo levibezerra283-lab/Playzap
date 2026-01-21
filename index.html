@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlayZap | Arcade Premium 100 Jogos</title>
+    <style>
+        :root { --neon: #00ff44; --bg: #0b0b0b; --card-bg: #151515; }
+        body { background-color: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding-bottom: 50px; text-align: center; overflow-x: hidden; }
+        header { padding: 15px; background: #111; border-bottom: 2px solid var(--neon); position: sticky; top: 0; z-index: 1000; }
+        .logo { font-size: 2.2rem; font-weight: bold; color: var(--neon); text-shadow: 0 0 10px rgba(0,255,68,0.5); display: block; margin-bottom: 10px; }
+        #searchBar { width: 85%; max-width: 450px; padding: 12px; border-radius: 25px; border: 2px solid #333; background: #1f1f1f; color: #fff; outline: none; }
+        .section-title { text-align: left; max-width: 1200px; margin: 30px auto 10px auto; padding: 0 20px; color: var(--neon); font-size: 1.3rem; font-weight: bold; }
+        .container-jogos { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .game-card, .featured-card { background: var(--card-bg); border: 2px solid #333; border-radius: 15px; position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.3s; }
+        .game-card { aspect-ratio: 1/1; }
+        .featured-card { width: 95%; height: 250px; margin: 0 auto; border: 3px solid var(--neon); border-radius: 20px; }
+        .game-card:hover { border-color: var(--neon); transform: scale(1.05); z-index: 10; }
+        .card-content { text-align: center; z-index: 1; pointer-events: none; }
+        .game-name { font-size: 0.85rem; font-weight: bold; color: var(--neon); text-transform: uppercase; padding: 5px; }
+        iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; display: none; background: #000; }
+        .active .card-content { display: none; }
+        .active iframe { display: block; }
+        .active { border-color: #fff !important; }
+        #btnMais { background: var(--neon); color: #000; border: none; padding: 18px 50px; font-size: 1.1rem; font-weight: bold; border-radius: 40px; cursor: pointer; margin: 30px auto; display: block; }
+        .game-card:fullscreen, .featured-card:fullscreen { width: 100vw; height: 100vh; border: none; border-radius: 0; }
+    </style>
+</head>
+<body>
+
+<header>
+    <span class="logo">PLAYZAP</span>
+    <input type="text" id="searchBar" placeholder="Pesquisar entre 100 jogos..." oninput="filtrar()">
+</header>
+
+<div class="section-title">🔥 DESTAQUE DO DIA</div>
+<div id="destaque-container"></div>
+
+<div class="section-title">🎮 TODOS OS JOGOS</div>
+<div class="container-jogos" id="lista-jogos"></div>
+
+<button id="btnMais" onclick="mostrarTudo()">MOSTRAR MAIS JOGOS</button>
+
+<script>
+    const todosJogos = [
+        // 1-27: Principais & Originais (Ev.io de tiro agora é o 1º)
+        { n: "Ev.io", u: "https://ev.io" }, { n: "Bloxd.io", u: "https://bloxd.io" },
+        { n: "Krunker.io", u: "https://krunker.io" }, { n: "Minefun.io", u: "https://minefun.io" },
+        { n: "Snake.io", u: "https://snake.io" }, { n: "Vectaria.io", u: "https://vectaria.io" },
+        { n: "Gartic.io", u: "https://gartic.io" }, { n: "Shell Shockers", u: "https://shellshock.io" },
+        { n: "Tetr.io", u: "https://tetr.io" }, { n: "SmashKarts.io", u: "https://smashkarts.io" },
+        { n: "Agar.io", u: "https://agar.io" }, { n: "Deeeep.io", u: "https://deeeep.io" },
+        { n: "Skribbl.io", u: "https://skribbl.io" }, { n: "Paper.io 2", u: "https://paper-io.com" },
+        { n: "Hole.io", u: "https://hole-io.com" }, { n: "Moomoo.io", u: "https://moomoo.io" },
+        { n: "Gulper.io", u: "https://gulper.io" }, { n: "Venge.io", u: "https://venge.io" },
+        { n: "SlowRoads.io", u: "https://slowroads.io" }, { n: "Kirka.io", u: "https://kirka.io" },
+        { n: "Zombs Royale", u: "https://zombsroyale.io" }, { n: "Diep.io", u: "https://diep.io" },
+        { n: "Arras.io", u: "https://arras.io" }, { n: "Lolbeans.io", u: "https://lolbeans.io" },
+        { n: "EvoWorld.io", u: "https://evoworld.io" }, { n: "Mope.io", u: "https://mope.io" },
+        { n: "Richup.io", u: "https://richup.io" },
+        // 28-77: Adicionais Seguros
+        { n: "Slither.io", u: "https://slither.io" }, { n: "2048 Game", u: "https://2048game.com" },
+        { n: "Chess.com", u: "https://chess.com" }, { n: "Moto X3M", u: "https://poki.com/en/g/moto-x3m" },
+        { n: "Subway Surfers", u: "https://subwaysurfers.io" }, { n: "Crossy Road", u: "https://crossyroad.com" },
+        { n: "Uno Online", u: "https://unoonline.co" }, { n: "Stickman Hook", u: "https://stickman-hook.io" },
+        { n: "BasketBros", u: "https://basketbros.io" }, { n: "SoccerBros", u: "https://soccerbros.io" },
+        { n: "LittleBigSnake", u: "https://littlebigsnake.com" }, { n: "Snowball.io", u: "https://snowball.io" },
+        { n: "Sudoku Online", u: "https://sudoku.com" }, { n: "Minesweeper", u: "https://minesweeper.online" },
+        { n: "Pacman Classic", u: "https://poki.com/en/g/pac-man" }, { n: "Helix Jump", u: "https://helixjump.io" },
+        { n: "Among Us Online", u: "https://among-us.io" }, { n: "Flappy Bird", u: "https://flappybird.io" },
+        { n: "Geometry Dash", u: "https://geometrydash.io" }, { n: "Cut the Rope", u: "https://cuttherope.net" },
+        { n: "Tetris Arcade", u: "https://tetris.com/play-tetris" }, { n: "Ludo King", u: "https://ludoking.com" },
+        { n: "8 Ball Pool", u: "https://8ballpool.com" }, { n: "Wordle", u: "https://www.nytimes.com/games/wordle/index.html" },
+        { n: "Paper Minecraft", u: "https://scratch.mit.edu/projects/10128407/embed" }, { n: "Cookie Clicker", u: "https://orteil.dashnet.org/cookieclicker/" },
+        { n: "Retro Bowl", u: "https://retrobowl.me" }, { n: "Fireboy Watergirl", u: "https://fireboywatergirl.io" },
+        { n: "Sonic Online", u: "https://sonic-online.io" }, { n: "Super Mario", u: "https://supermario-game.io" },
+        { n: "BitLife Online", u: "https://bitlifeonline.io" }, { n: "Traffic Racer", u: "https://trafficracer.io" },
+        { n: "Bubble Shooter", u: "https://bubbleshooter.net" }, { n: "Drift Hunters", u: "https://drifthunters.io" },
+        { n: "Snail Bob", u: "https://snailbob.io" }, { n: "Tomb Runner", u: "https://tombrunner.io" },
+        { n: "Bob the Robber", u: "https://bobtherobber.io" }, { n: "Bad Ice Cream", u: "https://badicecream.io" },
+        { n: "Penalty Shooter", u: "https://penalty-shooters.io" }, { n: "Vex 6", u: "https://vex6.io" },
+        { n: "DuckLife 4", u: "https://ducklife.com" }, { n: "Rodeo Stampede", u: "https://rodeostampede.io" },
+        { n: "Tiles Hop", u: "https://tileshop.io" }, { n: "Doodle Jump", u: "https://doodlejump.io" },
+        { n: "Fruit Ninja", u: "https://fruitninja.com" }, { n: "Solitaire", u: "https://google.com/logos/2016/solitaire/solitaire.html" },
+        { n: "Snake Classic", u: "https://google.com/fbx?fbx=snake_arcade" }, { n: "Dinosaur Game", u: "https://chromedino.com" },
+        { n: "Math Games", u: "https://mathplayground.com" }, { n: "Piano Tiles", u: "https://pianotiles.io" },
+        // 78-100: Novos Jogos
+        { n: "World's Hardest Game", u: "https://www.coolmathgames.com/0-worlds-hardest-game" },
+        { n: "Run 3", u: "https://run3.io" }, { n: "Elastic Man", u: "https://poki.com/en/g/elastic-man" },
+        { n: "Minecraft Classic", u: "https://classic.minecraft.net" }, { n: "Bloons TD 4", u: "https://bloonstd4.com" },
+        { n: "Burrito Bison", u: "https://burritobison.io" }, { n: "Tank Trouble", u: "https://tanktrouble.com" },
+        { n: "Duck Hunt", u: "https://duckhunt.js.org" }, { n: "Space Invaders", u: "https://freeinvaders.org" },
+        { n: "Asteroids", u: "https://asteroidsarcade.com" }, { n: "Pong Classic", u: "https://pong-2.com" },
+        { n: "Breakout", u: "https://atari.com/games/breakout/" }, { n: "Gold Miner", u: "https://goldminerclassic.com" },
+        { n: "Trollface Quest", u: "https://trollface-quest.io" }, { n: "Cut the Rope 2", u: "https://cuttherope2.io" },
+        { n: "Papa's Pizzeria", u: "https://papas-pizzeria.io" }, { n: "Geometry Dash Melt", u: "https://geometrydash.io/meltdown" },
+        { n: "Slope", u: "https://slopegame.io" }, { n: "Tunnel Rush", u: "https://tunnelrush.io" },
+        { n: "Color Bump 3D", u: "https://colorbump3d.io" }, { n: "Bottle Flip 3D", u: "https://bottleflip3d.io" },
+        { n: "Paper.io 3", u: "https://paper-io.com/v3" }, { n: "Happy Wheels", u: "https://totaljerkface.com/happy_wheels.tjf" }
+    ];
+
+    const lista = document.getElementById('lista-jogos');
+    const destaque = document.getElementById('destaque-container');
+    let mostrandoTudo = false;
+
+    function renderizar(quantidade) {
+        lista.innerHTML = "";
+        const limite = quantidade || 15;
+        todosJogos.forEach((j, index) => {
+            if (index < limite || mostrandoTudo) {
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                card.setAttribute('data-nome', j.n.toLowerCase());
+                card.onclick = () => abrir(card, j.u);
+                card.innerHTML = `<div class="card-content"><div class="game-name">${j.n}</div><div>🖱️</div></div><iframe src="" allow="fullscreen; pointer-lock"></iframe>`;
+                lista.appendChild(card);
+            }
+        });
+    }
+
+    function abrir(el, url) {
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        document.querySelectorAll('.game-card, .featured-card').forEach(c => {
+            if (c !== el) { c.classList.remove('active'); c.querySelector('iframe').src = ""; }
+        });
+        const ifr = el.querySelector('iframe');
+        if (!ifr.src || ifr.src === window.location.href) ifr.src = url;
+        el.classList.add('active');
+        setTimeout(() => ifr.focus(), 300);
+    }
+
+    function mostrarTudo() {
+        mostrandoTudo = true;
+        renderizar();
+        document.getElementById('btnMais').style.display = 'none';
+    }
+
+    function filtrar() {
+        const txt = document.getElementById('searchBar').value.toLowerCase();
+        if(txt.length > 0) { mostrandoTudo = true; document.getElementById('btnMais').style.display = 'none'; }
+        renderizar();
+        document.querySelectorAll('.game-card').forEach(c => {
+            c.style.display = c.getAttribute('data-nome').includes(txt) ? "flex" : "none";
+        });
+    }
+
+    // Iniciar Destaque com Ev.io (Tiro)
+    const d = todosJogos[0]; 
+    destaque.innerHTML = `<div class="featured-card" onclick="abrir(this, '${d.u}')"><div class="card-content"><div class="game-name" style="font-size:1.8rem">${d.n}</div><p>CLIQUE PARA JOGAR FPS EM TELA CHEIA</p></div><iframe src="" allow="fullscreen; pointer-lock"></iframe></div>`;
+    renderizar(15);
+</script>
+</body>
+</html>
