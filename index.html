@@ -6,42 +6,34 @@
     <title>PlayZap | Arcade 350+</title>
     <style>
         :root { --neon: #00ff44; --bg: #0b0b0b; --card: #1a1a1a; }
-        body { background-color: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding-bottom: 50px; text-align: center; }
+        body { background-color: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding-bottom: 50px; text-align: center; overflow-x: hidden; }
         
-        /* HEADER E BUSCA */
         header { padding: 20px; background: #111; border-bottom: 2px solid var(--neon); position: sticky; top: 0; z-index: 1000; }
         .logo { font-size: 2rem; font-weight: bold; color: var(--neon); text-shadow: 0 0 10px var(--neon); }
         #searchBar { width: 85%; max-width: 400px; padding: 12px; border-radius: 25px; border: none; background: #222; color: #fff; margin-top: 10px; outline: none; }
 
-        /* DESTAQUE */
         .section-title { text-align: left; padding: 20px 5% 5px; color: var(--neon); font-size: 1.2rem; font-weight: bold; }
-        .featured-card { width: 90%; height: 200px; margin: 10px auto; border: 3px solid var(--neon); border-radius: 20px; display: flex; align-items: center; justify-content: center; background: linear-gradient(45deg, #111, #222); cursor: pointer; position: relative; overflow: hidden; }
-        .featured-card h2 { position: absolute; bottom: 10px; left: 20px; margin: 0; }
+        
+        /* DESTAQUE */
+        .featured-card { width: 90%; height: 180px; margin: 10px auto; border: 3px solid var(--neon); border-radius: 20px; display: flex; align-items: center; justify-content: center; background: #151515; cursor: pointer; }
+        .featured-card h2 { color: var(--neon); margin: 0; text-transform: uppercase; }
 
-        /* GRID 2 COLUNAS (O QUE VOCÊ PEDIU: @@ @@) */
-        .container-jogos { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; /* Duas colunas fixas */
-            gap: 15px; 
-            padding: 15px; 
-            max-width: 1200px; 
-            margin: 0 auto; 
-        }
-        .game-card { background: var(--card); border: 2px solid #333; border-radius: 15px; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; padding: 10px; }
-        .game-card:hover { border-color: var(--neon); }
-        .game-card b { font-size: 0.85rem; color: var(--neon); text-transform: uppercase; }
+        /* GRID @@ @@ */
+        .container-jogos { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; max-width: 1200px; margin: 0 auto; }
+        .game-card { background: var(--card); border: 2px solid #333; border-radius: 15px; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 10px; }
+        .game-card b { font-size: 0.85rem; color: var(--neon); text-transform: uppercase; pointer-events: none; }
 
-        /* TELA DE JOGO (FULLSCREEN) */
-        #gameMaster { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 2147483647; display: none; }
+        /* PLAYER DE JOGO */
+        #gameMaster { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 999999; display: none; }
         #globalIframe { width: 100%; height: 100%; border: none; }
 
         /* BOLA FLUTUANTE */
-        #gameOverlay { position: absolute; top: 20px; right: 20px; width: 60px; height: 60px; z-index: 100001; }
-        .config-btn { background: #000; border: 3px solid var(--neon); color: var(--neon); font-size: 28px; width: 100%; height: 100%; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 15px var(--neon); }
-        .config-menu { position: absolute; top: 70px; right: 0; background: #1a1a1a; border: 2px solid var(--neon); padding: 15px; border-radius: 12px; width: 200px; display: none; text-align: left; }
-        .config-menu button { width: 100%; background: var(--neon); border: none; padding: 12px; margin-top: 10px; font-weight: bold; cursor: pointer; border-radius: 5px; color: #000; }
+        #gameOverlay { position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; z-index: 1000000; touch-action: none; }
+        .config-btn { background: #000; border: 2px solid var(--neon); color: var(--neon); font-size: 24px; width: 100%; height: 100%; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 10px var(--neon); }
+        .config-menu { position: absolute; top: 60px; right: 0; background: #1a1a1a; border: 2px solid var(--neon); padding: 15px; border-radius: 12px; width: 180px; display: none; }
+        .config-menu button { width: 100%; background: #ff4444; color: white; border: none; padding: 10px; font-weight: bold; border-radius: 5px; cursor: pointer; }
 
-        #btnMais { background: var(--neon); color: #000; border: none; padding: 15px 40px; font-size: 1rem; font-weight: bold; border-radius: 30px; cursor: pointer; margin: 30px auto; display: inline-block; }
+        #btnMais { background: var(--neon); color: #000; border: none; padding: 15px 40px; font-size: 1rem; font-weight: bold; border-radius: 30px; cursor: pointer; margin: 30px; display: inline-block; }
     </style>
 </head>
 <body>
@@ -50,20 +42,19 @@
     <div id="gameOverlay">
         <div class="config-btn" id="dragBtn">⚙️</div>
         <div class="config-menu" id="configMenu">
-            <span id="fps" style="color:var(--neon)">FPS: 60</span>
-            <button onclick="fecharJogo()" style="background: #ff4444; color: white;">❌ SAIR DO JOGO</button>
+            <button onclick="fecharJogo()">SAIR DO JOGO</button>
             <p style="font-size: 10px; color: #888; margin-top: 10px;">Atalho: Tecla J</p>
         </div>
     </div>
-    <iframe id="globalIframe" src="" allow="fullscreen; pointer-lock; autoplay"></iframe>
+    <iframe id="globalIframe" allow="autoplay; fullscreen; pointer-lock"></iframe>
 </div>
 
 <header>
     <div class="logo">PLAYZAP</div>
-    <input type="text" id="searchBar" placeholder="Pesquisar entre 350 jogos..." oninput="filtrar()">
+    <input type="text" id="searchBar" placeholder="Pesquisar jogos..." oninput="filtrar()">
 </header>
 
-<div class="section-title">🔥 DESTAQUE DO DIA</div>
+<div class="section-title">🔥 DESTAQUE</div>
 <div id="destaque-area"></div>
 
 <div class="section-title">🎮 TODOS OS JOGOS</div>
@@ -72,29 +63,34 @@
 <button id="btnMais" onclick="carregarTudo()">CARREGAR TODOS OS 350 JOGOS</button>
 
 <script>
-    const nomesFamosos = ["Minefun.io", "Vectaria.io", "Bloxd.io", "Ev.io", "Krunker.io", "Subway Surfers", "Shell Shockers", "Gartic.io", "Snake.io", "Zombs Royale", "Suroi.io", "Moto X3M", "Paper.io 2", "Agar.io", "Hole.io", "Smash Karts", "Slither.io", "Diep.io", "Skribbl.io", "Moomoo.io", "Wings.io", "Splix.io", "Deeeep.io", "Territorial.io", "BuildRoyale.io", "LittleBigSnake", "Warcall.io", "FlyOrDie.io"];
+    const links = [
+        { n: "Minefun.io", u: "https://minefun.io/" },
+        { n: "Vectaria.io", u: "https://vectaria.io/" },
+        { n: "Bloxd.io", u: "https://bloxd.io/" },
+        { n: "Subway Surfers", u: "https://www.agame.com/embed/subway-surfers" },
+        { n: "Moto X3M", u: "https://www.agame.com/embed/moto-x3m" },
+        { n: "Snake.io", u: "https://snake.io/" },
+        { n: "Paper.io 2", u: "https://paper-io.com/" },
+        { n: "Smash Karts", u: "https://smashkarts.io/" }
+    ];
 
-    const todosJogos = [];
+    let todosJogos = [];
     for(let i = 0; i < 350; i++) {
-        const n = nomesFamosos[i % nomesFamosos.length];
-        todosJogos.push({
-            n: i < nomesFamosos.length ? n : n + " " + (Math.floor(i/nomesFamosos.length) + 1),
-            u: i === 0 ? "https://minefun.io" : i === 1 ? "https://vectaria.io" : "https://v6p9d9t4.ssl.hwcdn.net/html/1647242/index.html"
-        });
+        let item = links[i % links.length];
+        todosJogos.push({ n: i < links.length ? item.n : item.n + " " + (i+1), u: item.u });
     }
 
     function renderizarDestaque() {
         document.getElementById('destaque-area').innerHTML = `
             <div class="featured-card" onclick="abrir('${todosJogos[0].u}')">
                 <h2>${todosJogos[0].n}</h2>
-            </div>
-        `;
+            </div>`;
     }
 
-    function renderizarJogos(quantidade) {
+    function renderizarJogos(qtd) {
         const lista = document.getElementById('lista-jogos');
         lista.innerHTML = "";
-        todosJogos.slice(0, quantidade).forEach(j => {
+        todosJogos.slice(0, qtd).forEach(j => {
             const card = document.createElement('div');
             card.className = 'game-card';
             card.innerHTML = `<b>${j.n}</b>`;
@@ -105,25 +101,18 @@
 
     function abrir(url) {
         const master = document.getElementById('gameMaster');
-        document.getElementById('globalIframe').src = url;
+        const iframe = document.getElementById('globalIframe');
         master.style.display = "block";
+        iframe.src = url;
         
-        // Ativa Fullscreen automático
+        // Tenta Fullscreen
         if (master.requestFullscreen) master.requestFullscreen();
-        else if (master.webkitRequestFullscreen) master.webkitRequestFullscreen();
-
-        // Reforço da bola flutuante
-        const overlay = document.getElementById('gameOverlay');
-        const interval = setInterval(() => {
-            if(master.style.display === "none") clearInterval(interval);
-            master.appendChild(overlay);
-        }, 1000);
     }
 
     function fecharJogo() {
-        if (document.fullscreenElement) document.exitFullscreen();
         document.getElementById('gameMaster').style.display = "none";
         document.getElementById('globalIframe').src = "";
+        if (document.fullscreenElement) document.exitFullscreen();
     }
 
     function carregarTudo() {
@@ -133,34 +122,61 @@
 
     function filtrar() {
         const busca = document.getElementById('searchBar').value.toLowerCase();
-        renderizarJogos(350); // Expande para buscar em tudo
         document.querySelectorAll('.game-card').forEach(c => {
             c.style.display = c.innerText.toLowerCase().includes(busca) ? "flex" : "none";
         });
     }
 
-    // Atalho J
-    document.addEventListener('keydown', (e) => {
-        if(e.key.toLowerCase() === 'j') {
-            const menu = document.getElementById('configMenu');
-            menu.style.display = menu.style.display === "block" ? "none" : "block";
+    // Lógica do Menu (⚙️) corrigida para funcionar com arraste
+    const dragBtn = document.getElementById('dragBtn');
+    const menu = document.getElementById('configMenu');
+    let moved = false;
+
+    dragBtn.addEventListener('click', () => {
+        if (!moved) {
+            menu.style.display = (menu.style.display === "block") ? "none" : "block";
         }
     });
 
-    document.getElementById('dragBtn').onclick = () => {
-        const menu = document.getElementById('configMenu');
-        menu.style.display = menu.style.display === "block" ? "none" : "block";
+    // Atalho Tecla J
+    document.addEventListener('keydown', (e) => {
+        if(e.key.toLowerCase() === 'j') menu.style.display = (menu.style.display === "block") ? "none" : "block";
+    });
+
+    // Sistema de Arrastar Profissional (Touch + Mouse)
+    const overlay = document.getElementById('gameOverlay');
+    let isDragging = false, startX, startY;
+
+    const startMove = (e) => {
+        isDragging = true;
+        moved = false; // Reset para clique
+        startX = (e.clientX || e.touches[0].clientX) - overlay.offsetLeft;
+        startY = (e.clientY || e.touches[0].clientY) - overlay.offsetTop;
     };
 
-    // Inicialização
+    const doingMove = (e) => {
+        if (!isDragging) return;
+        moved = true; // Se moveu, não é mais um clique
+        let curX = (e.clientX || e.touches[0].clientX) - startX;
+        let curY = (e.clientY || e.touches[0].clientY) - startY;
+        overlay.style.left = curX + "px";
+        overlay.style.top = curY + "px";
+    };
+
+    const stopMove = () => { isDragging = false; };
+
+    overlay.addEventListener('mousedown', startMove);
+    overlay.addEventListener('touchstart', startMove);
+    document.addEventListener('mousemove', doingMove);
+    document.addEventListener('touchmove', doingMove);
+    document.addEventListener('mouseup', stopMove);
+    document.addEventListener('touchend', stopMove);
+
+    // Inicializar
     renderizarDestaque();
-    renderizarJogos(16); // Começa com 16 para ficar leve
+    renderizarJogos(16);
 
     document.addEventListener('fullscreenchange', () => { if(!document.fullscreenElement) fecharJogo(); });
 </script>
-
 </body>
 </html>
-
-
-    
